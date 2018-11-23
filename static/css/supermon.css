@@ -1,0 +1,43 @@
+/**
+ * Supervisor monitor custom classes
+ */
+
+body {
+    padding-top: 80px;
+    font-size: 0.75rem !important;
+}
+.status-col {
+    width: 90px !important;
+}
+.runtime-col {
+    width: 135px !important;
+}
+.action-col {
+    width: 40px !important;
+}
+.statename-alert {
+    padding: 0rem 1.1rem !important;
+    margin-top: 1px !important;
+    margin-bottom: 0 !important;
+    text-align: center !important;
+}
+td {
+   max-height: 35px !important;
+   height: 35px !important;
+   overflow:hidden;
+   border-bottom:0 !important;
+   padding-bottom: 0 !important;
+}
+.btn-process {
+    padding: 0.125rem 0.50rem !important;
+}
+/*.table th, .table td */
+.table tr:last-child td {
+  border-bottom: 1px solid #DFD7CA !important;
+}
+.table tr:last-child th {
+  border-bottom: 1px solid #DFD7CA !important;
+}
+.hullabaloo {
+  padding: 0.75rem 1.25rem !important;
+}
