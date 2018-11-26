@@ -7,11 +7,18 @@ application = function() {
     var serverSentEventsSupport = false;
     var disconnectNotified = false;
     var hulla = null;
+    var hostUri = '';
+    var ws = null;
 
     /**
      * Initiliaze the application
      */
     var doInit = function() {
+        hostUri = window.location.protocol +
+            '//' + window.location.hostname +
+            ':' + window.location.port +
+            '/';
+
         $(window).scroll(function() {
             /* */
             var top = $(document).scrollTop();
@@ -75,7 +82,7 @@ application = function() {
             console.log('API:command:' + request.command);
             console.log('API:server_id:' + request.server_id);
             console.log('API:process_id:' + request.process_id);
-            $.post('/api', request)
+            $.get('/api', request)
             .done(function(data, status, xhr) {
                 if (data) {
                     if (data.status === 'error') {
@@ -92,7 +99,8 @@ application = function() {
         // **********************************************************
         // Server sent events
         //session_id = Math.uuid(15);
-        serverSentEventsSupport = (typeof(EventSource) !== undefined);
+//        serverSentEventsSupport = (typeof(EventSource) !== undefined);
+        connectWebSocket();
         // **********************************************************
         // End of doInit()
         // **********************************************************
@@ -110,9 +118,60 @@ application = function() {
         }
     };
     /**
+     * Process an event sent by the server
+     * @param {object} event
+     */
+    var processServerEvent = function(e) {
+        try {
+            var data;
+            try {
+                data = JSON.parse(e.data);
+            } catch (err) {
+                console.log('JSON parse error: ' + err);
+                return;
+            }
+            if (data.type === 'event') {
+                var serv_proc = '-' + data.event.server_id + '-' + data.event.process_id;
+                var el = '#' + data.event.key + serv_proc;
+                $(el).text(data.event.to);
+                if (data.event.key === 'statename') {
+                    // remove current classes and button glyph
+                    $('#statename' + serv_proc).removeClass('alert-dark alert-success alert-emergency alert-primary');
+                    $('#btn-proc' + serv_proc).removeClass('btn-dark btn-success btn-emergency btn-primary');
+                    $('#btn-glyph' + serv_proc).removeClass('fa-start fa-stop');
+                    var state_attr = {statename: 'light', btn: 'light', glyph: 'stop'};
+                    // determine classes depending on current state
+                    switch (data.event.to) {
+                       case 'STOPPED':
+                           state_attr = {statename: 'dark', btn: 'success', glyph: 'play'};
+                           break;
+                       case 'RUNNING':
+                           state_attr = {statename: 'success', btn: 'dark', glyph: 'stop'};
+                           break;
+                       case 'FATAL':
+                           state_attr = {statename: 'danger', btn: 'success', glyph: 'play'};
+                           break;
+                       case 'STARTING':
+                           state_attr = {statename: 'primary', btn: 'light', glyph: 'stop'};
+                           break;
+                       default:
+                           break;
+                    }
+                    $('#statename' + serv_proc).addClass('alert-' + state_attr.statename);
+                    $('#btn-proc' + serv_proc).addClass('btn-' + state_attr.btn);
+                    $('#btn-glyph' + serv_proc).addClass('fa-' + state_attr.glyph);
+                    $('#statename' + serv_proc).data('state', data.event.to);
+                    hulla.send('Process ' + data.event.process_name + ' is ' + data.event.to, state_attr.statename);
+                }
+            }
+        } catch(err) {
+            console.log('Exception: ' + err + ', data: ' + e.data);
+        }
+    };
+    /**
      * Connect to the server sent events
      */
-    var doConnectSSE = function() {
+    var connectSSE = function() {
         if (serverSentEventsSupport) {
             // Yes! Server-sent events support!
             session_id = Math.uuid(16);
@@ -120,46 +179,7 @@ application = function() {
             es.onmessage = function(e) {
                 flashGlyph('#sse-indicator');
                 console.log('SSE: ' + e.data);
-                try {
-                    var data = JSON.parse(e.data);
-                    if (data.type === 'event') {
-                        var serv_proc = '-' + data.event.server_id + '-' + data.event.process_id;
-                        var el = '#' + data.event.key + serv_proc;
-                        $(el).text(data.event.to);
-                        if (data.event.key === 'statename') {
-                             // remove current classes and button glyph
-                             $('#statename' + serv_proc).removeClass('alert-dark alert-success alert-emergency alert-primary');
-                             $('#btn-proc' + serv_proc).removeClass('btn-dark btn-success btn-emergency btn-primary');
-                             $('#btn-glyph' + serv_proc).removeClass('fa-start fa-stop');
-                             var state_attr = {statename: 'light', btn: 'light', glyph: 'stop'};
-                             // determine classes depending on current state
-                             switch (data.event.to) {
-                                case 'STOPPED':
-                                    state_attr = {statename: 'dark', btn: 'success', glyph: 'play'};
-                                    break;
-                                case 'RUNNING':
-                                    state_attr = {statename: 'success', btn: 'dark', glyph: 'stop'};
-                                    break;
-                                case 'FATAL':
-                                    state_attr = {statename: 'danger', btn: 'success', glyph: 'play'};
-                                    break;
-                                case 'STARTING':
-                                    state_attr = {statename: 'primary', btn: 'light', glyph: 'stop'};
-                                    break;
-                                default:
-                                    break;
-                             }
-                             $('#statename' + serv_proc).addClass('alert-' + state_attr.statename);
-                             $('#btn-proc' + serv_proc).addClass('btn-' + state_attr.btn);
-                             $('#btn-glyph' + serv_proc).addClass('fa-' + state_attr.glyph);
-                             $('#statename' + serv_proc).data('state', data.event.to);
-
-                             hulla.send('Process ' + data.event.process_name + ' is ' + data.event.to, state_attr.statename);
-                         }
-                    }
-                } catch(err) {
-                    console.log('Exception: ' + err + ', data: ' + e.data);
-                }
+                processServerEvent(e);
             };
             es.onopen = function(e) {
                 connected = true;
@@ -169,7 +189,7 @@ application = function() {
             };
             es.onerror = function(e) {
                 connected = false;
-                console.log('Error processing SSE stream');
+                console.log('SSE stream error');
                 if (! disconnectNotified) {
                     hulla.send('Disconnected from server', 'danger');
                     disconnectNotified = true;
@@ -178,6 +198,31 @@ application = function() {
         } else {
             // Sorry! No server-sent events support..
         }
+    };
+    var connectWebSocket = function() {
+        session_id = Math.uuid(15);
+        var location = 'ws://' + window.location.hostname + ':' + window.location.port + '/websocket/' + session_id;
+        var ws = new WebSocket(location);
+        ws.onopen = function() {
+            ws.send('Hello, world from ' + session_id);
+            connected = true;
+            disconnectNotified = false;
+            console.log('WebSocket opened');
+            hulla.send('Connected to server', 'success');
+        };
+        ws.onmessage = function (evt) {
+            console.log('WS::' + evt.data);
+            flashGlyph('#sse-indicator');
+            processServerEvent(evt);
+        };
+        ws.onerror = function(e) {
+            connected = false;
+            console.log('SSE stream error');
+            if (! disconnectNotified) {
+                hulla.send('Disconnected from server', 'danger');
+                disconnectNotified = true;
+            }
+        };
     };
     /**
      * Flash a glyph for 250 msec
@@ -193,7 +238,7 @@ application = function() {
      * Blink status
      */
     var lightsOn = false;
-    var doBlinkenLights = function() {
+    var blinkenLights = function() {
         if (! lightsOn) {
             $('.bink-indicator').hide();
         } else {
@@ -209,12 +254,14 @@ application = function() {
      */
     var doUpdate = function() {
         // Update blinking indicators
-        doBlinkenLights();
+        blinkenLights();
 
+/***
         // Try to reconnect every 5 seconds if server is down
         if (! connected && (ticks % (5 * 4) == 0)) {
-            doConnectSSE();
+            connectSSE();
         }
+***/
         // Check if it is time to send a keep-alive
         ticks --;
         if (ticks > 0) {
@@ -233,7 +280,7 @@ application = function() {
                 } catch (err) {
                     message = err;
                 }
-                console.log('KEEP: ' + message);
+                console.log('KEEP-ALIVE: ' + message);
             })
             .fail(function(data, status, xhr) {})
             .always(function(data, status, xhr) {});
@@ -247,9 +294,6 @@ application = function() {
         },
         update: function() {
             doUpdate();
-        },
-        connectSSE: function() {
-            doConnectSSE();
         }
     };
 }();

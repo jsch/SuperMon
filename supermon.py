@@ -9,9 +9,11 @@ from datetime import datetime
 import json
 import logging
 import queue
+import signal
 import threading
 import time
 
+import gevent
 import zmq
 
 import arguments
@@ -272,6 +274,7 @@ class SuperMon(object):
 def main():
     """Startup"""
     arguments.parse_cmd_line()
+    gevent.signal(signal.SIGQUIT, gevent.kill)
     super_mon = SuperMon()
     super_mon.run()
     while True:
