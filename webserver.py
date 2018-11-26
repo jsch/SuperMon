@@ -14,6 +14,7 @@ import threading
 import time
 
 import zmq
+import gevent
 
 import bottle
 
@@ -121,32 +122,46 @@ def stream(session_id):
         bottle.response.content_type = 'text/event-stream'
         bottle.response.cache_control = 'no-cache'
 
+        rfile = bottle.request.environ['wsgi.input'].rfile
+
+        poller = zmq.Poller()
+        poller.register(socket_sub, zmq.POLLIN)
+        poller.register(rfile, zmq.POLLIN)
+
         # Set client-side auto-reconnect timeout, ms.
         yield 'retry: 1000\n\n'
         time_reference = time.time()
         while session_is_active:
-            try:
-                message = socket_sub.recv(zmq.DONTWAIT)
-            except zmq.ZMQError:
-                time.sleep(0.01)
-            else:
-                ui_message = message.decode().replace('\n', '')
-                logging.debug('SSE message to [%s]:[%s]', session_id, ui_message)
+
+            events = dict(poller.poll())
+
+            if rfile.fileno() in events:
+                # client disconnect!
+                logging.debug('Session disconnected: %s', session_id)
+                break
+            if socket_sub in events:
                 try:
-                    yield 'data: {0}\n\n'.format(ui_message)
-                    # # # logging.debug('*** SSE after yield ***')
-                    time_reference = time.time()
-                except Exception as err:
-                    logging.debug('SSE exception to %s: %s', session_id, err)
-            # # # # Is the client still connected?
-            # # # time_now = time.time()
-            # # # if time_now - time_reference > k.HEARTBEAT_PERIOD * 1.1:
-            # # #     logging.debug('SSE TIMEOUT')
-            # Is this session still active?
-            if APPLICATION:
-                if not session_id in APPLICATION.active_sessions:
-                    logging.debug('Session no longer active: %s', session_id)
-                    session_is_active = False
+                    message = socket_sub.recv(zmq.DONTWAIT)
+                except zmq.ZMQError:
+                    time.sleep(0.01)
+                else:
+                    ui_message = message.decode().replace('\n', '')
+                    logging.debug('SSE message to [%s]:[%s]', session_id, ui_message)
+                    try:
+                        yield 'data: {0}\n\n'.format(ui_message)
+                        # # # logging.debug('*** SSE after yield ***')
+                        time_reference = time.time()
+                    except Exception as err:
+                        logging.debug('SSE exception to %s: %s', session_id, err)
+                # # # # Is the client still connected?
+                # # # time_now = time.time()
+                # # # if time_now - time_reference > k.HEARTBEAT_PERIOD * 1.1:
+                # # #     logging.debug('SSE TIMEOUT')
+                # # # # Is this session still active?
+                # # # if APPLICATION:
+                # # #     if not session_id in APPLICATION.active_sessions:
+                # # #         logging.debug('Session no longer active: %s', session_id)
+                # # #         session_is_active = False
 
     except Exception as err:
         logging.error('Exception processing stream: %s', err)
@@ -155,6 +170,40 @@ def stream(session_id):
         socket_sub.close()
     logging.debug('Disconnecting SSE from session %s', session_id)
     return
+
+def worker(body, rfile, session_id):
+    """ An SSE worker....
+    @see: https://stackoverflow.com/questions/20110830/responding-to-client-disconnects-using-bottle-and-gevent-wsgi
+    """
+    if APPLICATION:
+        APPLICATION.update_session_id(session_id)
+    socket_sub = zmq.Context().instance().socket(zmq.SUB)
+    socket_sub.connect(k.INTERNAL_ZMQ_EVENT_CNX)
+    # Subscribe to the messages to UI
+    socket_sub.setsockopt(zmq.SUBSCRIBE, ''.encode())
+    poll = zmq.Poller()
+    poll.register(socket_sub)
+    poll.register(rfile, zmq.POLLIN)
+
+    while True:
+        events = dict(poll.poll())
+
+        if rfile.fileno() in events:
+            # client disconnect!
+            break
+
+        if socket_sub in events:
+            msg = socket_sub.recv().decode().replace('\n', '')
+            body.put(msg)
+
+    body.put(StopIteration)
+
+@bottle.route('/stream-wtf/<session_id>')
+def poll(session_id):
+    rfile = bottle.request.environ['wsgi.input'].rfile
+    body = gevent.queue.Queue()
+    a_worker = gevent.spawn(worker, body, rfile, session_id)
+    return body
 
 
 # Clase del servidor web
