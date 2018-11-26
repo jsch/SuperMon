@@ -73,7 +73,7 @@ class SupervisorActor(pykka.ThreadingActor):
                 'event': data
             }
             self.event_queue.put_nowait(event)
-        logging.info('Publishing event: %s', repr(data))
+        logging.debug('Publishing event: %s', repr(data))
         return
 
     def make_change(self, process_name, process_id, key, fr, to):
@@ -357,6 +357,8 @@ class SupervisorActor(pykka.ThreadingActor):
         result = None
         if command is None:
             logging.error('No command specified')
+        elif command == k.CMD_STOP_ACTOR:
+            self.stop()
         elif command == k.CMD_START_MONITOR:
             self.start_monitor()
         elif command == k.CMD_STOP_MONITOR:

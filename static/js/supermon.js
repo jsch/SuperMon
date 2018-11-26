@@ -118,6 +118,11 @@ application = function() {
             session_id = Math.uuid(16);
             es = new EventSource('/stream/' + session_id);
             es.onmessage = function(e) {
+                if (! e) {
+                    es.close();
+                    console.log('SSE.onmessage no event');
+                    return;
+                }
                 flashGlyph('#sse-indicator');
                 console.log('SSE: ' + e.data);
                 try {
@@ -233,7 +238,7 @@ application = function() {
                 } catch (err) {
                     message = err;
                 }
-                console.log('KEEP: ' + message);
+                console.log('KEEP-ALIVE: ' + message);
             })
             .fail(function(data, status, xhr) {})
             .always(function(data, status, xhr) {});

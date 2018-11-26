@@ -263,8 +263,9 @@ class SuperMon(object):
         self.running = False
         self.main_loop_thread.join()
         logging.debug('Stopping actors')
+        message = {'command': k.CMD_STOP_ACTOR}
         for actor in self.actors:
-            actor.stop()
+            actor.tell(message)
         # self.web_server.stop()
         return
 

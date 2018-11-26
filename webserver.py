@@ -134,13 +134,14 @@ def stream(session_id):
                 logging.debug('SSE message to [%s]:[%s]', session_id, ui_message)
                 try:
                     yield 'data: {0}\n\n'.format(ui_message)
+                    # # # logging.debug('*** SSE after yield ***')
                     time_reference = time.time()
                 except Exception as err:
                     logging.debug('SSE exception to %s: %s', session_id, err)
-            # Is the client still connected?
-            time_now = time.time()
-            if time_now - time_reference > k.HEARTBEAT_PERIOD * 1.1:
-                logging.debug('SSE TIMEOUT')
+            # # # # Is the client still connected?
+            # # # time_now = time.time()
+            # # # if time_now - time_reference > k.HEARTBEAT_PERIOD * 1.1:
+            # # #     logging.debug('SSE TIMEOUT')
             # Is this session still active?
             if APPLICATION:
                 if not session_id in APPLICATION.active_sessions:
