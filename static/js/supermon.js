@@ -22,6 +22,7 @@ application = function() {
             /* */
         });
 
+        bootbox.setLocale('en');
         hulla = new hullabaloo();
 
         $('#clear-template-cache').on('click', function(e) {
@@ -41,7 +42,16 @@ application = function() {
             var command = $(this).data('command');
             console.log('Button global, action: ' + command);
             var request = {'command' : command};
-            requestApiService(request);
+            //  requestApiService(request);
+            bootbox.confirm({
+                size: "small",
+                message: '<div class="text-center"><h5><i class="text-danger fa fa-exclamation-triangle"></i> Are you sure?</h5></div>',
+                callback: function(result) {
+                    if (result) {
+                        requestApiService(request);
+                    }
+                }
+            });
             e.preventDefault();
         });
 
@@ -51,7 +61,16 @@ application = function() {
             var command = $(this).data('command');
             console.log('Button server: ' + serv + ', action: ' + command);
             var request = {'command': command, 'server_id': serv};
-            requestApiService(request);
+            //  requestApiService(request);
+            bootbox.confirm({
+                size: "small",
+                message: '<div class="text-center"><h5><i class="text-danger fa fa-exclamation-triangle"></i> Are you sure?</h5></div>',
+                callback: function(result) {
+                    if (result) {
+                        requestApiService(request);
+                    }
+                }
+            });
             e.preventDefault();
         });
 
@@ -65,7 +84,6 @@ application = function() {
             console.log('Button process: ' + serv + ', proc: ' + proc + ', command: ' + command, ', state: ' + state);
             var request = {'command': command, 'server_id': serv, 'process_id': proc, 'state': state};
             requestApiService(request);
-            e.preventDefault();
         });
 
         /**
@@ -75,6 +93,7 @@ application = function() {
             console.log('API:command:' + request.command);
             console.log('API:server_id:' + request.server_id);
             console.log('API:process_id:' + request.process_id);
+            $('body').addClass('wait');
             $.post('/api', request)
             .done(function(data, status, xhr) {
                 if (data) {
@@ -86,7 +105,9 @@ application = function() {
             .fail(function() {
                 hulla.send('Error executing command', 'danger');
             })
-            .always(function() {});
+            .always(function() {
+                $('body').removeClass('wait');
+            });
         };
 
         // **********************************************************
