@@ -209,7 +209,7 @@ class SupervisorActor(pykka.ThreadingActor):
     def get_all_processes_info(self):
         """Get the info of all processes"""
         result = dict()
-        for process_name in self.get_processes_names():
+        for process_name in self.get_processes_names()['processes_names']:
             result[process_name] = self.get_process_info(process_name)
         return result
 
