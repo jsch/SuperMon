@@ -2,6 +2,7 @@ bin
 include
 lib
 pip-selfcheck.json
+pykka
 nogit
 __pycache__
 pyvenv.cfg

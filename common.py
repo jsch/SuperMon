@@ -36,6 +36,8 @@ MAX_MISSED_CHECKS = 3
 ##
 # API and supervisor actors commands
 CMD_DIAGNOSTICS = 'diag'
+CMD_ASK_SERVER = 'ask'
+CMD_GET_INDEX = 'get_index'
 
 CMD_GET_PROCESSES_NAMES = 'get_processes_names'
 CMD_GET_PROCESS_INFO = 'get_process_info'

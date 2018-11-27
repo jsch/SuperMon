@@ -123,7 +123,6 @@ def stream(session_id):
 
         # Set client-side auto-reconnect timeout, ms.
         yield 'retry: 1000\n\n'
-        time_reference = time.time()
         while session_is_active:
             try:
                 message = socket_sub.recv(zmq.DONTWAIT)
@@ -132,16 +131,7 @@ def stream(session_id):
             else:
                 ui_message = message.decode().replace('\n', '')
                 logging.debug('SSE message to [%s]:[%s]', session_id, ui_message)
-                try:
-                    yield 'data: {0}\n\n'.format(ui_message)
-                    # # # logging.debug('*** SSE after yield ***')
-                    time_reference = time.time()
-                except Exception as err:
-                    logging.debug('SSE exception to %s: %s', session_id, err)
-            # # # # Is the client still connected?
-            # # # time_now = time.time()
-            # # # if time_now - time_reference > k.HEARTBEAT_PERIOD * 1.1:
-            # # #     logging.debug('SSE TIMEOUT')
+                yield 'data: {0}\n\n'.format(ui_message)
             # Is this session still active?
             if APPLICATION:
                 if not session_id in APPLICATION.active_sessions:

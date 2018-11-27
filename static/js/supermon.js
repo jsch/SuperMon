@@ -91,7 +91,7 @@ application = function() {
 
         // **********************************************************
         // Server sent events
-        //session_id = Math.uuid(15);
+        session_id = Math.uuid(16);
         serverSentEventsSupport = (typeof(EventSource) !== undefined);
         // **********************************************************
         // End of doInit()
@@ -115,7 +115,6 @@ application = function() {
     var doConnectSSE = function() {
         if (serverSentEventsSupport) {
             // Yes! Server-sent events support!
-            session_id = Math.uuid(16);
             es = new EventSource('/stream/' + session_id);
             es.onmessage = function(e) {
                 if (! e) {

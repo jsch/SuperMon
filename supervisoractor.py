@@ -178,7 +178,9 @@ class SupervisorActor(pykka.ThreadingActor):
 
     def get_processes_names(self):
         """Get the processes names"""
-        return sorted(self.processes.keys())
+        return {
+            'processes_names': sorted(self.processes.keys())
+        }
 
     def get_process_info(self, process_name):
         """Get the info for one process"""
@@ -360,9 +362,9 @@ class SupervisorActor(pykka.ThreadingActor):
         elif command == k.CMD_STOP_ACTOR:
             self.stop()
         elif command == k.CMD_START_MONITOR:
-            self.start_monitor()
+            result = self.start_monitor()
         elif command == k.CMD_STOP_MONITOR:
-            self.stop_monitor()
+            result = self.stop_monitor()
         elif command == k.CMD_GET_PROCESSES_NAMES:
             result = self.get_processes_names()
         elif command == k.CMD_GET_PROCESS_INFO:
@@ -409,10 +411,5 @@ class SupervisorActor(pykka.ThreadingActor):
         #
         logging.debug('Actor timer ended for server %s', self.server_name)
         return
-
-    # # # def a_method(self, ...):
-    # # #     ... # My regular method to be used through an ActorProxy
-
-
 
 # EOF

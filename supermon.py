@@ -42,11 +42,11 @@ class SuperMon(object):
         for config_item in config.SUPERVISORS:
             if self.is_valid_config_item(config_item):
                 config_item['server_id'] = server_id
-                server_id += 1
                 config_item['event_queue'] = self.event_queue
                 logging.debug('Starting actor for server: %s', config_item['server_name'])
                 actor = SupervisorActor.start(config_item)
                 self.actors.append(actor)
+                server_id += 1
             else:
                 logging.error('Invalid configuratio at: %s', repr(config_item))
         return
@@ -186,9 +186,9 @@ class SuperMon(object):
             with self.sessions_lock:
                 self.active_sessions[session_id] = time.time()
             return {'status': k.OK}
-        return {'status': k.ERROR, 'message': 'No session specified'}
+        return self.ui_error('No session specified')
 
-    def toggle_proc(self, request):
+    def process_command(self, command, request):
         """Toggle a process state (RUNNING <=> STOPPED)"""
         try:
             server_id = int(request.get('server_id', None))
@@ -198,8 +198,10 @@ class SuperMon(object):
             process_id = int(request.get('process_id', None))
         except Exception as err:
             return self.ui_error(err)
-        state = request.get('state')
-        command = k.CMD_STOP_PROC if state == 'RUNNING' else k.CMD_START_PROC
+        # Determine correct command in case of toggle command
+        if command == k.CMD_TOGGLE_PROC:
+            state = request.get('state')
+            command = k.CMD_STOP_PROC if state == 'RUNNING' else k.CMD_START_PROC
         message = {
             'command': command,
             'process_id': process_id
@@ -207,45 +209,79 @@ class SuperMon(object):
         result = self.actors[server_id].ask(message)
         return result
 
-    def not_ready_yet(self, request):
-        """Temporary response"""
+    def server_command(self, command, request):
+        """Execute a server command (start, stop, restart)"""
+        try:
+            server_id = int(request.get('server_id', None))
+        except Exception as err:
+            return self.ui_error(err)
+        message = {
+            'command': command
+        }
+        result = self.actors[server_id].ask(message)
+        return result
+
+    def global_command(self, command, request):
+        """Execute a command on all servers and processes"""
+        logging.debug('Command to all servers: %s', repr(request))
+        message = {
+            'command': command
+        }
+        for actor in self.actors:
+            actor.tell(message)
         result = {
-            'status': k.ERROR,
-            'message': 'Not ready yet: [{}]'.format(repr(request))
+            'status': k.OK,
+            'message': 'Command sent to all servers'
         }
         return result
+
+    def ask_actor(self, request):
+        """Ask a question to a server actor"""
+        if not 'server_id' in request:
+            return self.ui_error('No server_id specified')
+        try:
+            server_id = int(request.get('server_id'))
+        except Exception as err:
+            logging.debug('Exception getting server_id: %s', str(err))
+            return self.ui_error('Invalid server_id [{}]'.format(request['server_id']))
+        if not (0 <= server_id < len(self.actors)):
+            return self.ui_error(
+                'Server ID [{}] is out of range [0..{}]'.format(server_id, len(self.actors))
+            )
+        cmd = request.get('cmd')
+        if not cmd:
+            return self.ui_error('No command specified')
+        request['command'] = cmd
+        return self.actors[server_id].ask(request)
+
+    # # # def not_ready_yet(self, request):
+    # # #     """Temporary response"""
+    # # #     result = {
+    # # #         'status': k.ERROR,
+    # # #         'message': 'Not ready yet: [{}]'.format(repr(request))
+    # # #     }
+    # # #     return result
 
     def api_service(self, request):
         """Process an API request"""
         logging.debug('API Service, request: %s', repr(request))
-        if not 'command' in request:
-            return {
-                'status': k.ERROR,
-                'message': 'No command specified in API request'
-            }
-        command = request['command']
-        if command == 'keep-alive':
+        command = request.get('command')
+        if not command:
+            result = self.ui_error('No command specified in API request')
+        elif command == 'keep-alive':
             result = self.keep_alive(request)
         elif command == k.CMD_DIAGNOSTICS:
             result = self.diagnostics()
-        elif command == k.CMD_RESTART_GLOB:
-            result = self.not_ready_yet(request)        # TODO <<<<<
-        elif command == k.CMD_START_GLOB:
-            result = self.not_ready_yet(request)        # TODO <<<<<
-        elif command == k.CMD_STOP_GLOB:
-            result = self.not_ready_yet(request)        # TODO <<<<<
-        elif command == k.CMD_RESTART_ALL_PROC:
-            result = self.not_ready_yet(request)        # TODO <<<<<
-        elif command == k.CMD_START_ALL_PROC:
-            result = self.not_ready_yet(request)        # TODO <<<<<
-        elif command == k.CMD_STOP_ALL_PROC:
-            result = self.not_ready_yet(request)        # TODO <<<<<
-        elif command == k.CMD_START_PROC:
-            result = self.not_ready_yet(request)        # TODO <<<<<
-        elif command == k.CMD_STOP_PROC:
-            result = self.not_ready_yet(request)        # TODO <<<<<
-        elif command == k.CMD_TOGGLE_PROC:
-            result = self.toggle_proc(request)
+        elif command == k.CMD_GET_INDEX:
+            result = self.get_index_data()
+        elif command == k.CMD_ASK_SERVER:
+            result = self.ask_actor(request)
+        elif command in [k.CMD_RESTART_GLOB, k.CMD_START_GLOB, k.CMD_STOP_GLOB]:
+            result = self.global_command(command, request)
+        elif command in [k.CMD_RESTART_ALL_PROC, k.CMD_START_ALL_PROC, k.CMD_STOP_ALL_PROC]:
+            result = self.server_command(command, request)
+        elif command in [k.CMD_START_PROC, k.CMD_STOP_PROC, k.CMD_TOGGLE_PROC]:
+            result = self.process_command(command, request)
         else:
             result = self.ui_error('Invalid command received: {}'.format(command))
         logging.debug('API Service, response: %s', repr(result))
