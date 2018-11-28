@@ -7,9 +7,8 @@
   <meta content="width=device-width, initial-scale=1" name="viewport">
   <meta content="IE=edge" http-equiv="X-UA-Compatible">
   <link href="/static/css/bootstrap.css" media="screen" rel="stylesheet">
-  <link href="/static/css/custom.css" rel="stylesheet">
   <link href="/static/css/font-awesome.min.css" rel="stylesheet">
-  <link href="/static/css/superctl.css" rel="stylesheet">
+  <link href="/static/css/supermon.css" rel="stylesheet">
 </head>
 <body>
   <div class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
@@ -42,7 +41,7 @@
         <button class="close" data-dismiss="alert" type="button">&times;</button>
         <p></p>
         <div class="text-center">
-          <i class="fa fa-spin fa-spinner"></i> Execting, please wait...
+          <i class="fa fa-spin fa-spinner"></i> Executing, please wait...
         </div>
         <p></p>
       </div>
@@ -149,7 +148,5 @@
   <script src="/static/js/popper.js"></script>
   <script src="/static/js/bootstrap.js"></script>
   <script src="/static/js/bootbox.min.js"></script>
-  <script src="/static/js/base64.js"></script>
-  <script src="/static/js/custom.js"></script>
 </body>
 </html>
