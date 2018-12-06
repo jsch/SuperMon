@@ -35,6 +35,7 @@ MAX_MISSED_CHECKS = 3
 
 ##
 # API and supervisor actors commands
+CMD_KEEP_ALIVE = 'keep_alive'
 CMD_DIAGNOSTICS = 'diag'
 CMD_ASK_SERVER = 'ask'
 CMD_GET_INDEX = 'get_index'

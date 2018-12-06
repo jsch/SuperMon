@@ -75,9 +75,20 @@ def post_test():
     return bottle.template('posttest')
 
 #######################################
-# API service route
+# API service routes
 #######################################
-@bottle.route('/api', method=['GET', 'POST'])
+def api_service(request):
+    """API service request"""
+    logging.debug('api.request:[%s]', repr(request))
+    if APPLICATION:
+        response = APPLICATION.api_service(request)
+    else:
+        response = {'status': k.OK}
+    logging.debug('api.response:[%s]', repr(response))
+    bottle.response.content_type = 'application/json'
+    return response
+
+@bottle.route('/api', method='POST')
 def api_post():
     """Application API access"""
     request = {}
@@ -89,14 +100,37 @@ def api_post():
             val = bottle.request.params.get(key)
             logging.debug('[%s]:[%s]', key, val)
             request[key] = val
+    response = api_service(request)
+    return response
 
-    logging.debug('api.request:[%s]', repr(request))
-    if APPLICATION:
-        response = APPLICATION.api_service(request)
-    else:
-        response = {'status': k.OK}
-    logging.debug('api.response:[%s]', repr(response))
-    bottle.response.content_type = 'application/json'
+@bottle.route('/api/<command>', method='GET')
+def api_command(command):
+    """Simple command requested"""
+    request = {
+        'command': command
+    }
+    response = api_service(request)
+    return response
+
+@bottle.route('/api/<command>/<server_id>', method='GET')
+def api_server(command, server_id):
+    """Command for a server"""
+    request = {
+        'command': command,
+        'server_id': server_id
+    }
+    response = api_service(request)
+    return response
+
+@bottle.route('/api/<command>/<server_id>/<process_id>', method='GET')
+def api_process(command, server_id, process_id):
+    """Command for a process"""
+    request = {
+        'command': command,
+        'server_id': server_id,
+        'process_id': process_id
+    }
+    response = api_service(request)
     return response
 
 ########################################

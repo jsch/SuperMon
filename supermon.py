@@ -99,7 +99,7 @@ class SuperMon(object):
         message = {'command': k.CMD_START_MONITOR}
         for actor in self.actors:
             actor.ask(message)
-        return
+        return {'status': k.OK}
 
     def stop_monitoring(self):
         """Ask the actors to stop monitoring"""
@@ -107,7 +107,7 @@ class SuperMon(object):
         message = {'command': k.CMD_STOP_MONITOR}
         for actor in self.actors:
             actor.ask(message)
-        return
+        return {'status': k.OK}
 
     def update_session_id(self, session_id):
         """Update an active session"""
@@ -268,8 +268,12 @@ class SuperMon(object):
         command = request.get('command')
         if not command:
             result = self.ui_error('No command specified in API request')
-        elif command == 'keep-alive':
+        elif command == k.CMD_KEEP_ALIVE:
             result = self.keep_alive(request)
+        elif command == k.CMD_START_MONITOR:
+            result = self.start_monitoring()
+        elif command == k.CMD_STOP_MONITOR:
+            result = self.stop_monitoring()
         elif command == k.CMD_DIAGNOSTICS:
             result = self.diagnostics()
         elif command == k.CMD_GET_INDEX:

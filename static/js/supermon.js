@@ -240,15 +240,15 @@ application = function() {
         if (! connected && (ticks % (5 * 4) == 0)) {
             doConnectSSE();
         }
-        // Check if it is time to send a keep-alive
+        // Check if it is time to send a keep_alive
         ticks --;
         if (ticks > 0) {
             return;
         }
-        // Every 10 seconds send a keep-alive message to the server
+        // Every 10 seconds send a keep_alive message to the server
         ticks = 10 * 4;
         request = {
-            'command': 'keep-alive',
+            'command': 'keep_alive',
             'session_id': session_id
         };
         $.post('/api', request)
