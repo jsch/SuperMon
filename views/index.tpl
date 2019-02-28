@@ -166,7 +166,7 @@
               <a href="#top"><i class="fa fa-angle-double-up"></i>Back to top</a>
             </li>
             <li>
-              <a href="http://encontrack.com/">Encontrack</a>
+              Supervisor Monitor
             </li>
           </ul>
         </div>
