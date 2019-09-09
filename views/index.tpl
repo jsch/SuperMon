@@ -1,186 +1,123 @@
-% import common as k
 <!DOCTYPE html>
-<html lang="en" style="">
+
+<html>
 <head>
-  <meta content="text/html; charset=utf-8" http-equiv="content-type">
-  <meta charset="utf-8">
-  <title>Supervisor Web Control</title>
-  <meta content="width=device-width, initial-scale=1" name="viewport">
-  <meta content="IE=edge" http-equiv="X-UA-Compatible">
-  <link href="/static/css/sandstone.css" media="screen" rel="stylesheet">
-  <link href="/static/css/font-awesome.min.css" rel="stylesheet">
-  <link href="/static/css/supermon.css" rel="stylesheet">
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <title>Supervisor Web Control</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <link href="/static/css/sandstone.css" media="screen" rel="stylesheet">
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/static/css/supermon.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.js"></script>
+      <script src="/js/respond.min.js"></script>
+    <![endif]-->
+    <style>
+        .wait, .wait * {cursor: wait !important;}
+        .cursor-pointer {cursor: pointer !important;}
+        % if data.get('background'):
+        .w-backgound {background: url("/static/images/{{! data.get('background') }}")}
+        % end
+        /**
+        html {font-size: 62.5% !important;}
+        label {padding-top:0.5em;}
+        .mono {font-family: monospace;}
+        .glyphicon-none:before {content: "\2122"; color: transparent !important;}
+        .time-stamp {width: 11em !important;}
+        .tx-rx {width: 4em !important}
+        td.pkt {font-family: monospace;}
+        .w-backgound {background: url("/images/{{! data.get('background', 'none.png') }}")}
+        .extra-above {margin-top: 0.5em}
+        .extra-below {margin-bottom: 0.5em;}
+        ***/
+        /* slider checkbox */
+        /*
+        .div-checkbox {margin-top: 0.5em}
+        .checkbox-slider--b-flat input:disabled + span,
+            .checkbox-slider--b input:disabled + span {color: #333; }
+        */
+  </style>
 </head>
-<body>
-  <div class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
-    <div class="container">
-      <span class="navbar-brand" id="clear-template-cache">Supervisor Web Control</span>
-        <div class="collapse navbar-collapse" id="navbarResponsive">
-          <ul class="nav navbar-nav ml-auto">
-            <li class="nav-item">
-              <span id="sse-indicator" class="text-warning">
-                <i class="fa fa-bolt fa-2x"></i>
-              </span>
-            </li>
-            <li class="nav-separator">&nbsp;</li>
-            <li class="nav-item">
-              <span id="connection-indicator" class="bink-indicator text-danger">
-                <i class="fa fa-server fa-2x"></i>
-              </span>
-            </li>
-          </ul>
-        </div>
+
+<body id="page-body" class="w-backgound">
+    <div id="main">
     </div>
-  </div>
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-12">
-        <div>
-          <form>
-            <fieldset>
-              <button data-command="{{! k.CMD_STOP_GLOB }}" class="btn btn-global btn-dark" id="btn-stop-all" type="button">
-                <i class="fa fa-stop"></i>&nbsp;Stop all processes
-              </button>
-              <span>&nbsp;</span>
-              <button data-command="{{! k.CMD_START_GLOB }}" class="btn btn-global btn-success" id="btn-start-all" type="button">
-                <i class="fa fa-play"></i>&nbsp;Start all processes
-              </button>
-              <span>&nbsp;</span>
-              <button data-command="{{! k.CMD_RESTART_GLOB }}" class="btn btn-global btn-primary" id="btn-restart-all" type="button">
-                <i class="fa fa-refresh"></i>&nbsp;Restart all processes
-              </button>
-            </fieldset>
-          </form>
-        </div>
-      </div>
+    <div id="div-modal-login" class="container bs-docs-container">
+        <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true"
+             data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <!--button type="button" class="close" data-dismiss="modal" aria-hidden="true">&#215;</button-->
+                        <h4 class="modal-title" id="loginModalLabel">Supervisor Monitor</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <div id="modal-body">
+
+                            <form class="form-horizontal" role="form" id="frm-login">
+                                <div class="form-group">
+                                    <label for="txt-username" class="col-sm-3 control-label">Username</label>
+                                    <div class="col-sm-12">
+                                        <input type="text" class="form-control" id="txt-username" placeholder="Username" vlue="">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="txt-user-password" class="col-sm-3 control-label">Password</label>
+                                    <div class="col-sm-12">
+                                        <input type="password" class="form-control" id="txt-user-password" placeholder="Password" vlue="">
+                                    </div>
+                                </div>
+
+                                <div id="alert-authenticating-user" class="alert alert-info hidden" role="alert" aria-hidden="true">
+                                    <p>
+                                      <img id="img-status-ejecucion-comando" src="/static/images/loading.gif">
+                                      <span><strong>Authenticating user. Please wait.</strong></span>
+                                    </p>
+                                </div>
+
+                                <div class="alert alert-danger login-error" id="alert-error-login" aria-hidden="true">
+                                    <strong>Error:</strong> </br><span id="login-error-type">Invalid username or password.</span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <h6 class="float-left"><small>{{ data.get('git_tag', '--FIX GIT TAG--') }}</small></h6>
+                        <button type="submit" class="btn btn-primary" id="btn-login">
+                            <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>&nbsp;&nbsp;Login
+                        </button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
     </div>
-    <!-- Banner end -->
 
-    <div class="bs-doc-section" style="margin-top:4em !important">
-      % for ix, server in enumerate(data.get('servers')):
-      % if ix % 2 == 0:
-      <div class="row">
-      % end
-      % disable_btns = 'disabled' if server['failed'] else ''
 
-        <div class="col-sm-6">
-          <div class="card mb-3">
-            <h3 class="card-header" id="server_name_{{! '{:02d}'.format(ix) }}">{{! server['server_name'] }}</h3>
-            <div class="card-body">
-              <h5 class="card-title">
-                <button data-serv="{{! server['server_id'] }}" data-command="{{! k.CMD_STOP_ALL_PROC }}" class="btn btn-sm btn-dark btn-srv" type="button" {{! disable_btns }}>
-                  <i class="fa fa-stop"></i>&nbsp;Stop all
-                </button>
-                <span>&nbsp;</span>
-                <button data-serv="{{! server['server_id'] }}" data-command="{{! k.CMD_START_ALL_PROC }}" class="btn btn-sm btn-success btn-srv" type="button" {{! disable_btns }}>
-                  <i class="fa fa-play"></i>&nbsp;Start all
-                </button>
-                <span>&nbsp;</span>
-                <button data-serv="{{! server['server_id'] }}" data-command="{{! k.CMD_RESTART_ALL_PROC }}" class="btn btn-sm btn-primary btn-srv" type="button" {{! disable_btns }}>
-                  <i class="fa fa-refresh"></i>&nbsp;Restart all
-                </button>
-              </h5>
-              % if server['failed']:
-              <div class="alert alert-dismissible alert-danger">
-                <p></p>
-                <h6>
-                <div class="text-center">
-                  <i class="fa fa-exclamation-triangle"></i><span>&nbsp;{{! server['error_message'] }}</span>
-                </div>
-                </h6>
-                <p></p>
-              </div>
-              % end
-              <!--
-            </div>
-            <div class="card-body">
-            -->
-              % # any processes to display?
-              % if server['processes']:
-              <table class="table table-hover table-sm">
-                <thead>
-                  <tr>
-                    <th scope="col">Process</th>
-                    <th class="status-col" scope="col">State</th>
-                    <th class="runtime-col" scope="col">Runtime</th>
-                    <th class="action-col" scope="col">&nbsp;</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  % processes = [server['processes'][process_name] for process_name in sorted(server['processes'].keys())]
-                  % for process in processes:
-                  <tr>
-                    <%
-                    serv_proc = 'data-serv="{}" data-proc="{}"'.format(server['server_id'], process['process_id'])
-                    id_serv_proc = '-{}-{}'.format(server['server_id'], process['process_id'])
-                    statename = process.get('statename', '')
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/popper.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/static/js/bootbox.min.js"></script>
+    <script type="text/javascript" src="/static/js/hullabaloo.min.js"></script>
+    <script type="text/javascript" src="/static/js/json2.js"></script>
+    <script type="text/javascript" src="/static/js/uuid.js"></script>
+    <script type="text/javascript" src="/static/js/base64.js"></script>
+    <script type="text/javascript" src="/static/js/appinit.js"></script>
+    <!--
+    <script type="text/javascript" src="/static/js/supermon.js"></script>
+    <script type="text/javascript" src="/static/js/buzz.js"></script>
+    <script type="text/javascript" src="/static/js/date.js"></script>
 
-                    state_info = {
-                      'RUNNING': {'alert': 'success', 'btn': 'dark', 'glyph': 'stop'},
-                      'STOPPED': {'alert': 'dark', 'btn': 'success', 'glyph': 'play'},
-                      'FATAL': {'alert': 'danger', 'btn': 'success', 'glyph': 'play'},
-                      'STARTING': {'alert': 'primary', 'btn': 'light', 'glyph': 'ban'},
-                    }
-                    alert = 'success' if statename not in state_info else state_info[statename]['alert']
-                    btn = 'light'  if statename not in state_info else state_info[statename]['btn']
-                    glyph = 'ban' if statename not in state_info else state_info[statename]['glyph']
-
-                    %>
-                    <th role="row">{{! process['name'] }}</th>
-                    <td><div  id="statename{{! id_serv_proc }}" class="statename-alert alert alert-{{! alert }}" role="alert" {{! serv_proc }} data-state="{{! statename }}" >
-                      {{! statename }}</div>
-                    </td>
-                    <td><span id="runtime{{! id_serv_proc }}">{{! process.get('runtime', '') }}</span></td>
-                    <td>
-                      <button id="btn-proc{{! id_serv_proc }}" class="btn-process btn btn-sm btn-{{! btn }}" type="button" {{! serv_proc }} data-command="{{! k.CMD_TOGGLE_PROC }}" {{! disable_btns }}>
-                        <i id="btn-glyph{{! id_serv_proc }}" class="fa fa-{{! glyph }}"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  % end     # one process
-                </tbody>
-              </table>
-              % end         # any processes
-            </div>
-          </div>
-        </div>
-
-      % if ix % 2 == 1:
-      </div> <!-- row end -->
-      % end
-      % end     # for
-
-      % # after last server... check if we need to close the row
-      % if ix % 2 == 0:
-      </div>
-      % end
-
-    </div>
-    <!--  data end -->
-
-    <footer id="footer">
-      <div class="row">
-        <div class="col-lg-12">
-          <ul class="list-unstyled">
-            <li class="float-lg-right">
-              <a href="#top"><i class="fa fa-angle-double-up"></i>Back to top</a>
-            </li>
-            <li>
-              Supervisor Monitor
-            </li>
-          </ul>
-        </div>
-      </div>
-    </footer>
-
-  </div>
-  <script src="/static/js/jquery.js"></script>
-  <script src="/static/js/popper.js"></script>
-  <script src="/static/js/bootstrap.js"></script>
-  <script src="/static/js/bootbox.min.js"></script>
-  <script src="/static/js/hullabaloo.min.js"></script>
-  <script src="/static/js/json2.js"></script>
-  <script src="/static/js/uuid.js"></script>
-  <script src="/static/js/supermon.js"></script>
+    <script type="text/javascript" src="/static/js/"></script>
+    <script type="text/javascript" src="/static/js/"></script>
+    <script type="text/javascript" src="/static/js/"></script>
+    <script type="text/javascript" src="/static/js/"></script>
+    -->
 </body>
 </html>

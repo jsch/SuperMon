@@ -109,6 +109,32 @@ class SuperMon(object):
             actor.ask(message)
         return {'status': k.OK}
 
+    def authenticate_user(self, request):
+        """Authenticate the user"""
+        for key in request.keys():
+            val = request.get(key)
+            logging.debug('[%s]:[%s]', key, val)
+            request[key] = val
+        # TODO:
+        # response = {'result': k.ERROR, 'message': 'Still workin on this...'}
+        response = {
+            'result': k.OK,
+            'template': 'application',
+            'data': self.get_index_data(),
+        }
+        return response
+
+    def session_logout(self, request):
+        """Terminate a session"""
+        if 'sessionid' in request:
+            session_id = request['sessionid']
+            with self.sessions_lock:
+                # setting the session timeout to zero forces it to be invalid
+                # when verifying it
+                self.active_sessions[session_id] = 0
+            self.verify_active_sessions()
+        return {'status': k.OK}
+
     def update_session_id(self, session_id):
         """Update an active session"""
         with self.sessions_lock:
@@ -244,7 +270,7 @@ class SuperMon(object):
         except Exception as err:
             logging.debug('Exception getting server_id: %s', str(err))
             return self.ui_error('Invalid server_id [{}]'.format(request['server_id']))
-        if not (0 <= server_id < len(self.actors)):
+        if not 0 <= server_id < len(self.actors):
             return self.ui_error(
                 'Server ID [{}] is out of range [0..{}]'.format(server_id, len(self.actors))
             )
@@ -268,6 +294,10 @@ class SuperMon(object):
         command = request.get('command')
         if not command:
             result = self.ui_error('No command specified in API request')
+        elif command == k.CMD_AUTHENTICATE:
+            result = self.authenticate_user(request)
+        elif command == k.CMD_LOGOUT:
+            result = self.session_logout(request)
         elif command == k.CMD_KEEP_ALIVE:
             result = self.keep_alive(request)
         elif command == k.CMD_START_MONITOR:

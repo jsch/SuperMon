@@ -25,13 +25,13 @@ class SupervisorActor(pykka.ThreadingActor):
         self.event_queue = config.get('event_queue', None)
         ip_address = config.get('ip_address')
         port = config.get('port')
-        user_name = config.get('user_name')
+        username = config.get('username')
         password = config.get('password')
         user_pass = ''
-        if user_name and password:
-            user_pass = '{}@{}:'.format(user_name, password)
+        if username and password:
+            user_pass = '{}:{}@'.format(username, password)
         self.connection = 'http://{}{}:{}/RPC2'.format(user_pass, ip_address, port)
-        logging.debug('Connection string: %s', self.connection)
+        logging.debug('[%s]connection string:[%s]', self.server_name, self.connection)
 
         self.server = None
         self.processes = dict()
@@ -271,6 +271,10 @@ class SupervisorActor(pykka.ThreadingActor):
         except Exception as err:
             error = self.make_error(err)
             self.publish_event(error, 'error')
+            result = {
+                'status': k.ERROR,
+                'message': 'error'
+            }
         self.refresh_all_processes_info()
         return result
 
@@ -285,6 +289,10 @@ class SupervisorActor(pykka.ThreadingActor):
         except Exception as err:
             error = self.make_error(err)
             self.publish_event(error, 'error')
+            result = {
+                'status': k.ERROR,
+                'message': 'error'
+            }
         self.refresh_all_processes_info()
         return result
 
@@ -300,6 +308,10 @@ class SupervisorActor(pykka.ThreadingActor):
         except Exception as err:
             error = self.make_error(err)
             self.publish_event(error, 'error')
+            result = {
+                'status': k.ERROR,
+                'message': 'error'
+            }
         self.refresh_all_processes_info()
         return result
 
@@ -379,11 +391,11 @@ class SupervisorActor(pykka.ThreadingActor):
             result = self.refresh_all_processes_info()
         elif command in [k.CMD_STOP_PROC, k.CMD_START_PROC]:
             result = self.start_stop_process(message)
-        elif command == k.CMD_RESTART_ALL_PROC:
+        elif command in [k.CMD_RESTART_ALL_PROC, k.CMD_RESTART_GLOB]:
             result = self.restart_all_processes()
-        elif command == k.CMD_START_ALL_PROC:
+        elif command in [k.CMD_START_ALL_PROC, k.CMD_START_GLOB]:
             result = self.start_all_processes()
-        elif command == k.CMD_STOP_ALL_PROC:
+        elif command in [k.CMD_STOP_ALL_PROC, k.CMD_STOP_GLOB]:
             result = self.stop_all_processes()
         else:
             err_message = 'Invalid command received: {}'.format(command)

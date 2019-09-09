@@ -25,6 +25,7 @@ import common as k
 #######################################
 APPLICATION = None
 B64STR = lambda ui: base64.b64encode(bytes(ui, 'utf-8')).decode()
+GIT_TAG = 'master'
 
 
 #######################################
@@ -37,7 +38,10 @@ def index():
     """Index page route"""
     if APPLICATION:
         template = 'index'
-        data = APPLICATION.get_index_data()
+        data = {
+            'git_tag': GIT_TAG,
+            'background': 'pattern.gif'
+        }
     else:
         template = 'index-poc'
         data = {
@@ -74,6 +78,7 @@ def post_test():
     """Post test"""
     return bottle.template('posttest')
 
+
 #######################################
 # API service routes
 #######################################
@@ -85,6 +90,12 @@ def api_service(request):
     else:
         response = {'status': k.OK}
     logging.debug('api.response:[%s]', repr(response))
+    if 'template' in response:
+        if 'data' in response:
+            html = bottle.template(response['template'], data=response['data'])
+        else:
+            html = bottle.template(response['template'])
+        response['html'] = B64STR(html)
     bottle.response.content_type = 'application/json'
     return response
 
@@ -156,7 +167,7 @@ def stream(session_id):
         bottle.response.cache_control = 'no-cache'
 
         # Set client-side auto-reconnect timeout, ms.
-        yield 'retry: 1000\n\n'
+        yield 'retry: 100\n\n'
         while session_is_active:
             try:
                 message = socket_sub.recv(zmq.DONTWAIT)

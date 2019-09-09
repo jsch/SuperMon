@@ -1,4 +1,9 @@
-application = function() {
+/**
+    search for:
+        //***
+**/
+var application = function() {
+    'use strict';
 
     var connected = false;
     var session_id = null;
@@ -7,6 +12,7 @@ application = function() {
     var serverSentEventsSupport = false;
     var disconnectNotified = false;
     var hulla = null;
+    var lightsOn = false;
 
     /**
      * Initiliaze the application
@@ -25,7 +31,23 @@ application = function() {
         bootbox.setLocale('en');
         hulla = new hullabaloo();
 
-        $('#clear-template-cache').on('click', function(e) {
+        $('.btn-logout').on('click', function(e) {
+            console.log('Logging out');
+            var data = {
+                'command': 'logout',
+                'sessionid': session_id
+            };
+            $.post('/api', data)
+                .done(function(data, status, xhr) {})
+                .fail(function(data, status, xhr) {})
+                .always(function(data, status, xhr) {
+                    session_id = '';
+                    location.reload(true);
+                });
+            e.preventDefault();
+        });
+
+        $('.clear-template-cache').on('click', function(e) {
             $.get('/clrtemplatecache')
                 .done(function(data, status, xhr) {
                     bootbox.alert('Template cache cleared');
@@ -38,7 +60,7 @@ application = function() {
         });
 
         // Global action buttons
-        $('.btn-global').on('click', function(e){
+        $('.btn-global').on('click', function(e) {
             var command = $(this).data('command');
             console.log('Button global, action: ' + command);
             var request = {'command' : command};
@@ -56,7 +78,7 @@ application = function() {
         });
 
         // Server action buttons
-        $('.btn-srv').on('click', function(e){
+        $('.btn-srv').on('click', function(e) {
             var serv = $(this).data('serv');
             var command = $(this).data('command');
             console.log('Button server: ' + serv + ', action: ' + command);
@@ -75,7 +97,7 @@ application = function() {
         });
 
         // Process action buttons
-        $('.btn-process').on('click', function(e){
+        $('.btn-process').on('click', function(e) {
             var serv = $(this).data('serv');
             var proc = $(this).data('proc');
             var command = $(this).data('command');
@@ -112,7 +134,7 @@ application = function() {
 
         // **********************************************************
         // Server sent events
-        session_id = Math.uuid(16);
+        // session_id = Math.uuid(16);
         serverSentEventsSupport = (typeof(EventSource) !== undefined);
         // **********************************************************
         // End of doInit()
@@ -136,6 +158,9 @@ application = function() {
     var doConnectSSE = function() {
         if (serverSentEventsSupport) {
             // Yes! Server-sent events support!
+            if (!session_id) {
+                session_id = Math.uuid(16);
+            }
             es = new EventSource('/stream/' + session_id);
             es.onmessage = function(e) {
                 if (! e) {
@@ -144,7 +169,7 @@ application = function() {
                     return;
                 }
                 flashGlyph('#sse-indicator');
-                console.log('SSE: ' + e.data);
+                //*** console.log('SSE: ' + e.data);
                 try {
                     var data = JSON.parse(e.data);
                     if (data.type === 'event') {
@@ -198,6 +223,7 @@ application = function() {
                 if (! disconnectNotified) {
                     hulla.send('Disconnected from server', 'danger');
                     disconnectNotified = true;
+                    session_id = null;
                 }
             };
         } else {
@@ -247,18 +273,19 @@ application = function() {
         }
         // Every 10 seconds send a keep_alive message to the server
         ticks = 10 * 4;
-        request = {
+        var request = {
             'command': 'keep_alive',
             'session_id': session_id
         };
         $.post('/api', request)
             .done(function(data, status, xhr) {
+                var message;
                 try {
                     message = data.status;
                 } catch (err) {
                     message = err;
                 }
-                console.log('KEEP-ALIVE: ' + message);
+                //*** console.log('KEEP-ALIVE: ' + message);
             })
             .fail(function(data, status, xhr) {})
             .always(function(data, status, xhr) {});

@@ -35,6 +35,8 @@ MAX_MISSED_CHECKS = 3
 
 ##
 # API and supervisor actors commands
+CMD_AUTHENTICATE = 'authenticateuser'
+CMD_LOGOUT = 'logout'
 CMD_KEEP_ALIVE = 'keep_alive'
 CMD_DIAGNOSTICS = 'diag'
 CMD_ASK_SERVER = 'ask'
