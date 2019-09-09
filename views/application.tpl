@@ -1,17 +1,4 @@
 % import common as k
-<!-- <!DOCTYPE html>
-<html lang="en" style="">
-<head>
-  <meta content="text/html; charset=utf-8" http-equiv="content-type">
-  <meta charset="utf-8">
-  <title>Supervisor Web Control</title>
-  <meta content="width=device-width, initial-scale=1" name="viewport">
-  <meta content="IE=edge" http-equiv="X-UA-Compatible">
-  <link href="/static/css/sandstone.css" media="screen" rel="stylesheet">
-  <link href="/static/css/font-awesome.min.css" rel="stylesheet">
-  <link href="/static/css/supermon.css" rel="stylesheet">
-</head>
-<body> -->
   <div class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
     <div class="container">
       <span class="navbar-brand" id="clear-template-cache">Supervisor Web Control</span>
@@ -97,10 +84,7 @@
                 <p></p>
               </div>
               % end
-              <!--
-            </div>
-            <div class="card-body">
-            -->
+
               % # any processes to display?
               % if server['processes']:
               <table class="table table-hover table-sm">
@@ -180,14 +164,5 @@
     </footer>
 
   </div>
-  <!-- <script src="/static/js/jquery.js"></script>
-  <script src="/static/js/popper.js"></script>
-  <script src="/static/js/bootstrap.js"></script>
-  <script src="/static/js/bootbox.min.js"></script>
-  <script src="/static/js/hullabaloo.min.js"></script>
-  <script src="/static/js/json2.js"></script>
-  <script src="/static/js/uuid.js"></script> -->
-  <script src="/static/js/supermon.js"></script>
 
-<!-- </body>
-</html> -->
+  <script src="/static/js/supermon.js"></script>

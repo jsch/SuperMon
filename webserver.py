@@ -73,11 +73,6 @@ def server_static(filepath):
     """Static files"""
     return bottle.static_file(filepath, root='static')
 
-@bottle.route('/posttest')
-def post_test():
-    """Post test"""
-    return bottle.template('posttest')
-
 
 #######################################
 # API service routes

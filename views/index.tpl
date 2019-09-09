@@ -22,24 +22,7 @@
         % if data.get('background'):
         .w-backgound {background: url("/static/images/{{! data.get('background') }}")}
         % end
-        /**
-        html {font-size: 62.5% !important;}
-        label {padding-top:0.5em;}
-        .mono {font-family: monospace;}
-        .glyphicon-none:before {content: "\2122"; color: transparent !important;}
-        .time-stamp {width: 11em !important;}
-        .tx-rx {width: 4em !important}
-        td.pkt {font-family: monospace;}
-        .w-backgound {background: url("/images/{{! data.get('background', 'none.png') }}")}
-        .extra-above {margin-top: 0.5em}
-        .extra-below {margin-bottom: 0.5em;}
-        ***/
-        /* slider checkbox */
-        /*
-        .div-checkbox {margin-top: 0.5em}
-        .checkbox-slider--b-flat input:disabled + span,
-            .checkbox-slider--b input:disabled + span {color: #333; }
-        */
+        /* */
   </style>
 </head>
 
@@ -109,15 +92,5 @@
     <script type="text/javascript" src="/static/js/uuid.js"></script>
     <script type="text/javascript" src="/static/js/base64.js"></script>
     <script type="text/javascript" src="/static/js/appinit.js"></script>
-    <!--
-    <script type="text/javascript" src="/static/js/supermon.js"></script>
-    <script type="text/javascript" src="/static/js/buzz.js"></script>
-    <script type="text/javascript" src="/static/js/date.js"></script>
-
-    <script type="text/javascript" src="/static/js/"></script>
-    <script type="text/javascript" src="/static/js/"></script>
-    <script type="text/javascript" src="/static/js/"></script>
-    <script type="text/javascript" src="/static/js/"></script>
-    -->
 </body>
 </html>
