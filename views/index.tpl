@@ -72,9 +72,11 @@
                     </div>
 
                     <div class="modal-footer">
+                        <!--
                         <h6 class="float-left"><small>{{ data.get('git_tag', '--FIX GIT TAG--') }}</small></h6>
+                        -->
                         <button type="submit" class="btn btn-primary" id="btn-login">
-                            <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>&nbsp;&nbsp;Login
+                            <span class="fa fa-sign-in" aria-hidden="true"></span>&nbsp;&nbsp;Login
                         </button>
                     </div>
                 </div><!-- /.modal-content -->

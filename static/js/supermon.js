@@ -7,7 +7,7 @@ var application = function() {
 
     var connected = false;
     var session_id = null;
-    var es = null;
+    // var es = null;
     var ticks = 10 * 4;
     var serverSentEventsSupport = false;
     var disconnectNotified = false;
@@ -153,15 +153,22 @@ var application = function() {
         }
     };
     /**
+     * Get the session_id
+     * @return the current session_id or a new one is created.
+     */
+    var getSessionId = function() {
+        if (! session_id) {
+            session_id = Math.uuid(16);
+        }
+        return session_id;
+    };
+    /**
      * Connect to the server sent events
      */
     var doConnectSSE = function() {
         if (serverSentEventsSupport) {
             // Yes! Server-sent events support!
-            if (!session_id) {
-                session_id = Math.uuid(16);
-            }
-            es = new EventSource('/stream/' + session_id);
+            var es = new EventSource('/stream/' + getSessionId());
             es.onmessage = function(e) {
                 if (! e) {
                     es.close();
@@ -273,10 +280,12 @@ var application = function() {
         }
         // Every 10 seconds send a keep_alive message to the server
         ticks = 10 * 4;
+        var _session_id = getSessionId();
         var request = {
             'command': 'keep_alive',
-            'session_id': session_id
+            'session_id': _session_id
         };
+        console.log('KEEP-ALIVE:SESSION:' + _session_id);
         $.post('/api', request)
             .done(function(data, status, xhr) {
                 var message;
@@ -285,7 +294,7 @@ var application = function() {
                 } catch (err) {
                     message = err;
                 }
-                //*** console.log('KEEP-ALIVE: ' + message);
+                console.log('KEEP-ALIVE:ACK:' + message);
             })
             .fail(function(data, status, xhr) {})
             .always(function(data, status, xhr) {});
