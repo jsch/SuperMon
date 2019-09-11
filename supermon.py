@@ -23,7 +23,33 @@ from supervisoractor import SupervisorActor
 
 FMT_TSTAMP = lambda ts: datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
-class SuperMon(object):
+class Session:
+    """Session class"""
+
+    def __init__(self, session_id):
+        """Initialize session object"""
+        self.session_id = session_id
+        now = time.time()
+        self.startup = now
+        self.last_heartbeat = now
+
+    def register_heartbeat(self):
+        """Register a heartbeat event"""
+        self.last_heartbeat = time.time()
+
+    def is_active(self, time_reference):
+        """Verifies if session is active"""
+        elapsed_time = time_reference - self.last_heartbeat
+        periods = elapsed_time // k.SESSION_CHECK_PERIOD
+        # have we missed maximum number of heartbeat?
+        return k.MAX_MISSED_CHECKS > periods
+
+    def deactivate(self):
+        """Deactivate a session by setting the heartbeat to 0"""
+        self.last_heartbeat = 0
+
+
+class SuperMon:
     """Aplication main class"""
 
     def __init__(self):
@@ -57,7 +83,8 @@ class SuperMon(object):
         for session in self.active_sessions:
             sessions.append({
                 'session_id': session,
-                'updated': FMT_TSTAMP(self.active_sessions[session])
+                'startup': FMT_TSTAMP(self.active_sessions[session].startup),
+                'updated': FMT_TSTAMP(self.active_sessions[session].last_heartbeat)
             })
         result = {
             'startup': FMT_TSTAMP(self.startup),
@@ -127,23 +154,30 @@ class SuperMon(object):
 
     def session_logout(self, request):
         """Terminate a session"""
-        if 'sessionid' in request:
-            session_id = request['sessionid']
-            with self.sessions_lock:
-                # setting the session timeout to zero forces it to be invalid
-                # when verifying it
-                self.active_sessions[session_id] = 0
-            self.verify_active_sessions()
+        result = {'status': k.OK}
+        session_id = request.get('sessionid')
+        if not session_id:
+            return result
+        session = self.active_sessions.get(session_id)
+        if not session:
+            return result
+        with self.sessions_lock:
+            # setting the session timeout to zero forces it to be invalid
+            # when verifying it
+            session.deactivate()
+        self.verify_active_sessions()
         return {'status': k.OK}
 
     def update_session_id(self, session_id):
         """Update an active session"""
         with self.sessions_lock:
-            self.active_sessions[session_id] = time.time()
+            if not session_id in self.active_sessions:
+                self.active_sessions[session_id] = Session(session_id)
+            else:
+                self.active_sessions[session_id].register_heartbeat()
             if self.num_active_sessions == 0:
                 self.num_active_sessions = len(self.active_sessions)
                 self.start_monitoring()
-        return
 
     def verify_active_sessions(self):
         """Verify active sessions and remove those inactive"""
@@ -151,9 +185,10 @@ class SuperMon(object):
         inactive = []
         with self.sessions_lock:
             for session_id in self.active_sessions:
-                elapsed_time = time_reference - self.active_sessions[session_id]
-                periods = elapsed_time // k.SESSION_CHECK_PERIOD
-                if periods > k.MAX_MISSED_CHECKS:
+                # elapsed_time = time_reference - self.active_sessions[session_id]
+                # periods = elapsed_time // k.SESSION_CHECK_PERIOD
+                # if periods > k.MAX_MISSED_CHECKS:
+                if not self.active_sessions[session_id].is_active(time_reference):
                     inactive.append(session_id)
             for session_id in inactive:
                 self.active_sessions.pop(session_id, None)
@@ -162,7 +197,7 @@ class SuperMon(object):
                 if not self.active_sessions:
                     self.stop_monitoring()
                 self.num_active_sessions = len(self.active_sessions)
-        return
+
 
     def main_loop(self):
         """Main loop"""
@@ -199,7 +234,6 @@ class SuperMon(object):
         socket_pub.setsockopt(zmq.LINGER, 0)
         socket_pub.close()
         logging.debug('Main loop terminated')
-        return
 
     def ui_error(self, message):
         """Create an error dict to send to the UI"""
@@ -212,11 +246,17 @@ class SuperMon(object):
     def keep_alive(self, request):
         """Update/Create an active session"""
         session_id = request.get('session_id')
-        if session_id:
-            with self.sessions_lock:
-                self.active_sessions[session_id] = time.time()
-            return {'status': k.OK}
-        return self.ui_error('No session specified')
+        if not session_id:
+            logging.error('No session specified')
+            return self.ui_error('No session specified')
+        # session = self.active_sessions.get(session_id)
+        # if not session:
+        #     logging.error('No active session %s', session_id)
+        #     return self.ui_error('Invalid session received')
+        # with self.sessions_lock:
+        #     session.register_heartbeat()
+        self.update_session_id(session_id)
+        return {'status': k.OK}
 
     def process_command(self, command, request):
         """Toggle a process state (RUNNING <=> STOPPED)"""
@@ -330,7 +370,6 @@ class SuperMon(object):
         self.running = True
         self.web_server.run()
         self.main_loop_thread.start()
-        return
 
     def stop(self):
         """Stop the system"""
@@ -341,7 +380,6 @@ class SuperMon(object):
         for actor in self.actors:
             actor.tell(message)
         # self.web_server.stop()
-        return
 
 
 def main():
@@ -355,7 +393,6 @@ def main():
         except KeyboardInterrupt:
             break
     super_mon.stop()
-    return
 
 if __name__ == '__main__':
     main()
