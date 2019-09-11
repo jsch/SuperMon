@@ -1,6 +1,6 @@
 /**
     search for:
-        //***
+        (slash)(slash)***
 **/
 var application = function() {
     'use strict';
@@ -166,9 +166,12 @@ var application = function() {
      * Connect to the server sent events
      */
     var doConnectSSE = function() {
-        if (serverSentEventsSupport) {
-            // Yes! Server-sent events support!
-            var es = new EventSource('/stream/' + getSessionId())
+        if (!serverSentEventsSupport) {
+            // Sorry! No server-sent events support..
+            return;
+        }
+        // Yes! Server-sent events support!
+        var es = new EventSource('/stream/' + getSessionId())
             .onmessage(function(e) {
                 if (! e) {
                     es.close();
@@ -232,14 +235,12 @@ var application = function() {
                     disconnectNotified = true;
                     session_id = null;
                 }
-            });
-        } else {
-            // Sorry! No server-sent events support..
-        }
+            }
+        );
     };
     /**
      * Flash a glyph for 250 msec
-     * @param {string} target elemento a flash
+     * @param {string} target element to flash
      */
     var flashGlyph = function(target) {
         $(target).removeClass('invisible').addClass('visible');
@@ -311,6 +312,9 @@ var application = function() {
         },
         connectSSE: function() {
             doConnectSSE();
+        },
+        getSessionId: function() {
+            return session_id;
         }
     };
 }();
