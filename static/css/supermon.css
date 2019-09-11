@@ -44,3 +44,42 @@ td {
 .wait, .wait * {
   cursor: wait !important;
 }
+/***** Wiggle *****/
+
+.wiggle {
+  animation: wiggle 150ms infinite;
+  animation-timing-function: linear;
+}
+
+@keyframes wiggle {
+  0% { transform: translate(5px, 0); }
+  50% { transform: translate(-5px, 0); }
+  100% { transform: translate(5px, 0); }
+}
+
+/***** Shake *****/
+.shake {
+  animation: shake 150ms infinite;
+  animation-timing-function: linear;
+}
+@keyframes shake {
+  0% { transform: rotate(0.5deg); }
+  50% { transform: rotate(-0.5deg); }
+  100% { transform: rotate(0.5deg); }
+}
+/***** Pulse *****/
+.pulse {
+  animation: pulse 1s infinite;
+  animation-timing-function: linear;
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1);
+  100% { transform: scale(1); }
+  }
+}
+/***** Zoom *****/
+.zoom {
+  transform: scale(1.1);
+  transition: all ease 500ms;
+}

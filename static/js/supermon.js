@@ -229,7 +229,8 @@ var application = function() {
         };
         es.onerror = function(e) {
             // connected = false;
-            console.log('Error processing SSE stream: ' + e.message);
+            const d = new Date();
+            console.log(d.getTime() + ' - Error processing SSE stream');
             // if (! disconnectNotified) {
             //     hulla.send('Disconnected from server', 'danger');
             //     disconnectNotified = true;

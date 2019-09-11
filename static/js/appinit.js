@@ -45,6 +45,7 @@ const appInit = function() {
                     $('#loginModal').modal('hide');
                     loadDiv(data.html, '#main');
                 } else if (data.result === 'error') {
+                    shakeLogin();
                     $('#login-error-type').html(data.message);
                     $('#alert-error-login').show();
                 } else { //if (data.result == 'ERROR-DESCONOCIDO')
@@ -63,11 +64,20 @@ const appInit = function() {
             })
         ;
     };
+    var shakeLogin = function() {
+        $('#loginModal').addClass('wiggle');
+        setTimeout(function() {
+            $('#loginModal').removeClass('wiggle');
+            doLogin();
+        }, 1000);
+    };
     var doInit = function() {
-        // Deshabilitar cache de llamadas Ajax
-        $.ajaxSetup({cache: false,
+        // Disable cache for Ajax
+        $.ajaxSetup({
+            cache: false,
             ajaxBeforeSend: doAjaxBeforeSend,
-            ajaxComplete: doAjaxComplete
+            ajaxComplete: doAjaxComplete,
+            async: true
         });
         $('.login-error').hide();
         $('#alert-authenticating-user').hide();
@@ -99,6 +109,6 @@ const appInit = function() {
 }();
 $(document).ready(function() {
     $('[data-toggle="tooltip"]').tooltip();
-    // Aplicacion
+    // Start thw application
     appInit.init();
 });
