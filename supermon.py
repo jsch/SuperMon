@@ -62,6 +62,7 @@ class SuperMon(object):
         result = {
             'startup': FMT_TSTAMP(self.startup),
             'runtime': k.format_secs_to_runtime(time.time() - self.startup),
+            'datetime': FMT_TSTAMP(time.time()),
             'num_active_sessions': len(self.active_sessions),
             'sessions': sessions
         }
@@ -171,11 +172,14 @@ class SuperMon(object):
         heartbeat_counter = 0
         time_reference = time.time()
         while self.running:
+            # Verify messages from actors
             message = None
             try:
                 message = self.event_queue.get(block=True, timeout=1.0)
             except queue.Empty:
                 message = None
+            else:
+                socket_pub.send(json.dumps(message).encode())
 
             # time for a heartbeat?
             if time.time() - time_reference > k.HEARTBEAT_PERIOD:
@@ -186,11 +190,11 @@ class SuperMon(object):
                 heartbeat_counter += 1
                 heartbeat_counter = heartbeat_counter & 0xFFFFFF
                 time_reference = time.time()
-            if message:
+            # if message:
                 socket_pub.send(json.dumps(message).encode())
 
-            # Verify active sessions
-            self.verify_active_sessions()
+                # Verify active sessions
+                self.verify_active_sessions()
 
         socket_pub.setsockopt(zmq.LINGER, 0)
         socket_pub.close()

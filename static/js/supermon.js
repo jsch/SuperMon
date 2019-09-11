@@ -168,8 +168,8 @@ var application = function() {
     var doConnectSSE = function() {
         if (serverSentEventsSupport) {
             // Yes! Server-sent events support!
-            var es = new EventSource('/stream/' + getSessionId());
-            es.onmessage = function(e) {
+            var es = new EventSource('/stream/' + getSessionId())
+            .onmessage(function(e) {
                 if (! e) {
                     es.close();
                     console.log('SSE.onmessage no event');
@@ -217,14 +217,14 @@ var application = function() {
                 } catch(err) {
                     console.log('Exception: ' + err + ', data: ' + e.data);
                 }
-            };
-            es.onopen = function(e) {
+            })
+            .onopen(function(e) {
                 connected = true;
                 disconnectNotified = false;
                 console.log('SSE opened');
                 hulla.send('Connected to server', 'success');
-            };
-            es.onerror = function(e) {
+            })
+            .onerror(function(e) {
                 connected = false;
                 console.log('Error processing SSE stream');
                 if (! disconnectNotified) {
@@ -232,7 +232,7 @@ var application = function() {
                     disconnectNotified = true;
                     session_id = null;
                 }
-            };
+            });
         } else {
             // Sorry! No server-sent events support..
         }
