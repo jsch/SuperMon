@@ -44,6 +44,10 @@ td {
 .wait, .wait * {
   cursor: wait !important;
 }
+/***
+.wiggle, .shake, .pulse and .zoom from:
+https://codepen.io/Digitango/pen/YQQBXR
+***/
 /***** Wiggle *****/
 
 .wiggle {
