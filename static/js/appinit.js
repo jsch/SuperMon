@@ -54,7 +54,7 @@ const appInit = function() {
                 }
             })
             .fail(function(data, status, xhr) {
-                $('#login-error-type').html('No hay comunicaciones con el servidor.');
+                $('#login-error-type').html('No communications with the server. Is it running?');
                 $('#alert-error-login').show();
             })
             .always(function(data, status, xhr) {
