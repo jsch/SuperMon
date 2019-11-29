@@ -1,6 +1,6 @@
 # SuperMon
 
-Supervisord monitor 
+Supervisord monitor
 
 Web application to monitor and control [spervisord](supervisord.org/) servers
 
@@ -71,10 +71,15 @@ and is available at:
 http://localhost:8080
 ```
 
+**IMPORTANT**
+
+***At the moment we are working in an authentication scheme that is
+not ready yet. Once you see the login screen just press on the
+`LOGIN` button to access the main application***
+
 There are some comand line argunents to modify how the application
 works, but I leave this for you to discover with:
 
 ```
 python supermon.py -h
 ```
-
