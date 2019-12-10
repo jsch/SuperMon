@@ -40,7 +40,8 @@ def index():
         template = 'index'
         data = {
             'git_tag': GIT_TAG,
-            'background': 'pattern.gif'
+            'background': 'pattern.gif',
+            'use_login': k.PARAMS['use_login'],
         }
     else:
         template = 'index-poc'

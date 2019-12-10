@@ -144,7 +144,13 @@ class SuperMon:
             logging.debug('[%s]:[%s]', key, val)
             request[key] = val
         # TODO:
-        # response = {'result': k.ERROR, 'message': 'Still workin on this...'}
+        # if user is not authenticated return an error:
+        #     response = {'result': k.ERROR, 'message': 'Still workin on this...'}
+        # else: build the application page
+        return self.get_app_page()
+
+    def get_app_page(self):
+        """Build the application page response"""
         response = {
             'result': k.OK,
             'template': 'application',
@@ -342,6 +348,8 @@ class SuperMon:
             result = self.authenticate_user(request)
         elif command == k.CMD_LOGOUT:
             result = self.session_logout(request)
+        elif command == k.CMD_GET_APP_PAGE:
+            result = self.get_app_page()
         elif command == k.CMD_KEEP_ALIVE:
             result = self.keep_alive(request)
         elif command == k.CMD_START_MONITOR:

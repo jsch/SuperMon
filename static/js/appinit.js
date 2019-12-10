@@ -72,6 +72,7 @@ const appInit = function() {
         }, 1000);
     };
     var doInit = function() {
+        $('#div-modal-login').hide();
         // Disable cache for Ajax
         $.ajaxSetup({
             cache: false,
@@ -100,6 +101,24 @@ const appInit = function() {
             }
             return true;
         });
+
+        if (use_login) {
+            $('#div-modal-login').show();
+        } else {
+            var data = {
+                'command': 'get_app_page'
+            };
+            $.post('/api', data)
+                .done(function(data, status, xhr) {
+                    if (data.result === 'ok') {
+                        $('#loginModal').modal('hide');
+                        loadDiv(data.html, '#main');
+                    } else {
+                        $('#login-error-type').html('An unexpected error occurred.<br />Pleas contact the administrator.');
+                        $('#alert-error-login').show();
+                    }
+                });
+        };
     };
     return {
         init: function() {

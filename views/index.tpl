@@ -30,7 +30,7 @@
     <div id="main">
     </div>
     <div id="div-modal-login" class="container bs-docs-container">
-        <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true"
+        <div class="modal" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true"
              data-backdrop="static" data-keyboard="false">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -84,7 +84,7 @@
         </div><!-- /.modal -->
     </div>
 
-
+    <script type="text/javascript">use_login = {{ 'true' if data.get('use_login') else 'false' }};</script>
     <script type="text/javascript" src="/static/js/jquery.js"></script>
     <script type="text/javascript" src="/static/js/popper.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap.js"></script>

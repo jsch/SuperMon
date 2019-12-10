@@ -7,6 +7,7 @@
 
 import argparse
 import logging
+import sys
 
 import common as k
 
@@ -26,12 +27,18 @@ def parse_cmd_line():
         default=k.REFRESH_PERIOD,
         help='Status refresh period in secs (default: {})'.format(k.REFRESH_PERIOD)
     )
-
     parser.add_argument(
         '-A', action='store_true',
         dest='print_args_and_exit',
         default=False,
-        help='Print arguments and exit')
+        help='Print arguments and exit'
+    )
+    parser.add_argument(
+        '-L', action='store_true',
+        dest='use_login',
+        default=k.USE_LOGIN,
+        help='Enable login mode'
+    )
 
     grp_log = parser.add_mutually_exclusive_group()
     grp_log.add_argument(
@@ -63,6 +70,7 @@ def parse_cmd_line():
     except:
         k.PARAMS['refresh_period'] = k.REFRESH_PERIOD
         logging.error('Invalid refresh period [%s], using default value', args.refresh_period)
+    k.PARAMS['use_login'] = args.use_login
 
     # Identify the logging level
     if args.debug_level:
@@ -77,9 +85,12 @@ def parse_cmd_line():
         level = logging.INFO
     k.init_logging(level)
 
-    print('http_port: {}'.format(k.PARAMS['http_port']))
-    print('refresh_period: {}'.format(k.PARAMS['refresh_period']))
+    print('=' * 30)
+    print('      http_port: {}'.format(k.PARAMS['http_port']))
+    print(' refresh_period: {}'.format(k.PARAMS['refresh_period']))
+    print('      Use login: {}'.format(k.PARAMS['use_login']))
+    print('=' * 30)
 
     if args.print_args_and_exit:
-        exit()
+        sys.exit()
     return

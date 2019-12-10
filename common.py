@@ -14,10 +14,14 @@ HTTP_PORT = 8080
 # Status refresh period in seconds
 REFRESH_PERIOD = 60
 
+# Use login form
+USE_LOGIN = False
+
 # Application parameters
 PARAMS = {
     'http_port': HTTP_PORT,
-    'refresh_period': REFRESH_PERIOD
+    'refresh_period': REFRESH_PERIOD,
+    'use_login': USE_LOGIN,
 }
 
 # Status
@@ -41,6 +45,7 @@ CMD_KEEP_ALIVE = 'keep_alive'
 CMD_DIAGNOSTICS = 'diag'
 CMD_ASK_SERVER = 'ask'
 CMD_GET_INDEX = 'get_index'
+CMD_GET_APP_PAGE = 'get_app_page'
 
 CMD_GET_PROCESSES_NAMES = 'get_processes_names'
 CMD_GET_PROCESS_INFO = 'get_process_info'
