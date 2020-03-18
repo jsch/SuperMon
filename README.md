@@ -2,7 +2,7 @@
 
 Supervisord monitor
 
-Web application to monitor and control [spervisord](supervisord.org/) servers
+Web application to monitor and control [supervisord](http://supervisord.org/) servers
 
 ## Installation
 
