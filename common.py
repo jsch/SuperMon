@@ -68,6 +68,7 @@ CMD_STOP_ALL_PROC = 'stop_all_proc'
 CMD_TOGGLE_PROC = 'toggle_proc'
 CMD_START_PROC = 'start_proc'
 CMD_STOP_PROC = 'stop_proc'
+CMD_RESTART_PROC = 'restart_proc'
 
 ##
 # Common functions
@@ -78,13 +79,12 @@ def init_logging(level=logging.INFO):
         stream=sys.stdout,
         format="%(asctime)s %(levelname)-8s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S")
-    return
 
-def format_secs_to_runtime(ts):
+def format_secs_to_runtime(tsec):
     """Formats a timestamp to days HH:MM:SS"""
-    sec = timedelta(seconds=ts)
-    dt = datetime(1, 1, 1) + sec
-    result = '{} days, {}:{:02d}:{:02d}'.format(sec.days, dt.hour, dt.minute, dt.second)
+    sec = timedelta(seconds=tsec)
+    dtm = datetime(1, 1, 1) + sec
+    result = '{} days, {}:{:02d}:{:02d}'.format(sec.days, dtm.hour, dtm.minute, dtm.second)
     return result
 
 # EOF

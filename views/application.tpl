@@ -15,12 +15,12 @@
                 <i class="fa fa-server fa-2x"></i>
               </span>
             </li>
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <button id="btn-logout" type="button" class="btn btn-info navbar-btn btn-logout">
                     <span class="fa fa-power-off"></span>&nbsp;
                     <span>Logout</span>
                 </button>
-            </li>
+            </li> -->
           </ul>
         </div>
     </div>
@@ -50,6 +50,14 @@
     <!-- Banner end -->
 
     <div class="bs-doc-section" style="margin-top:4em !important">
+        <%
+         state_info = {
+           'RUNNING': {'alert': 'success', 'btn': 'dark', 'glyph': 'stop'},
+           'STOPPED': {'alert': 'dark', 'btn': 'success', 'glyph': 'play'},
+           'FATAL': {'alert': 'danger', 'btn': 'success', 'glyph': 'play'},
+           'STARTING': {'alert': 'primary', 'btn': 'light', 'glyph': 'ban'},
+         }
+       %>
       % for ix, server in enumerate(data.get('servers')):
       % if ix % 2 == 0:
       <div class="row">
@@ -94,33 +102,42 @@
                     <th class="status-col" scope="col">State</th>
                     <th class="runtime-col" scope="col">Runtime</th>
                     <th class="action-col" scope="col">&nbsp;</th>
+                    <th class="action-col" scope="col">&nbsp;</th>
                   </tr>
                 </thead>
                 <tbody>
                   % processes = [server['processes'][process_name] for process_name in sorted(server['processes'].keys())]
                   % for process in processes:
-                  <tr>
+                  <tr role="row">
                     <%
                     serv_proc = 'data-serv="{}" data-proc="{}"'.format(server['server_id'], process['process_id'])
                     id_serv_proc = '-{}-{}'.format(server['server_id'], process['process_id'])
                     statename = process.get('statename', '')
 
-                    state_info = {
-                      'RUNNING': {'alert': 'success', 'btn': 'dark', 'glyph': 'stop'},
-                      'STOPPED': {'alert': 'dark', 'btn': 'success', 'glyph': 'play'},
-                      'FATAL': {'alert': 'danger', 'btn': 'success', 'glyph': 'play'},
-                      'STARTING': {'alert': 'primary', 'btn': 'light', 'glyph': 'ban'},
-                    }
                     alert = 'success' if statename not in state_info else state_info[statename]['alert']
                     btn = 'light'  if statename not in state_info else state_info[statename]['btn']
                     glyph = 'ban' if statename not in state_info else state_info[statename]['glyph']
+                    is_running = statename in ['RUNNING']
 
                     %>
-                    <th role="row">{{! process['name'] }}</th>
-                    <td><div  id="statename{{! id_serv_proc }}" class="statename-alert alert alert-{{! alert }}" role="alert" {{! serv_proc }} data-state="{{! statename }}" >
+                    <td>
+                        <div style="margin-top:5px">{{! process['name'] }}</div>
+                    </td>
+                    <td><div  id="statename{{! id_serv_proc }}" class="statename-alert alert alert-{{! alert }}" role="alert" {{! serv_proc }} data-state="{{! statename }}" style="top:3px">
                       {{! statename }}</div>
                     </td>
-                    <td><span id="runtime{{! id_serv_proc }}">{{! process.get('runtime', '') }}</span></td>
+                    <td>
+                        <div id="runtime{{! id_serv_proc }}" style="margin-top:5px">{{! process.get('runtime', '') }}</div>
+                    </td>
+                    <td>
+                        % if is_running:
+                        <button id="btn-rstrt{{! id_serv_proc }}" class="btn-process btn btn-sm btn-primary" type="button" {{! serv_proc }} data-command="{{! k.CMD_RESTART_PROC }}" {{! disable_btns }}>
+                          <i id="btn-glyph-rstrt{{! id_serv_proc }}" class="fa fa-refresh"></i>
+                        </button>
+                        % else:
+                        &nbsp;
+                        % end
+                    </td>
                     <td>
                       <button id="btn-proc{{! id_serv_proc }}" class="btn-process btn btn-sm btn-{{! btn }}" type="button" {{! serv_proc }} data-command="{{! k.CMD_TOGGLE_PROC }}" {{! disable_btns }}>
                         <i id="btn-glyph{{! id_serv_proc }}" class="fa fa-{{! glyph }}"></i>

@@ -31,21 +31,21 @@ var application = function() {
         bootbox.setLocale('en');
         hulla = new hullabaloo();
 
-        $('.btn-logout').on('click', function(e) {
-            console.log('Logging out');
-            var data = {
-                'command': 'logout',
-                'sessionid': session_id
-            };
-            $.post('/api', data)
-                .done(function(data, status, xhr) {})
-                .fail(function(data, status, xhr) {})
-                .always(function(data, status, xhr) {
-                    session_id = '';
-                    location.reload(true);
-                });
-            e.preventDefault();
-        });
+        // $('.btn-logout').on('click', function(e) {
+        //     console.log('Logging out');
+        //     var data = {
+        //         'command': 'logout',
+        //         'sessionid': session_id
+        //     };
+        //     $.post('/api', data)
+        //         .done(function(data, status, xhr) {})
+        //         .fail(function(data, status, xhr) {})
+        //         .always(function(data, status, xhr) {
+        //             session_id = '';
+        //             location.reload(true);
+        //         });
+        //     e.preventDefault();
+        // });
 
         $('.clear-template-cache').on('click', function(e) {
             $.get('/clrtemplatecache')

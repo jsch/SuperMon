@@ -14,6 +14,7 @@ import time
 
 import zmq
 
+import pykka
 import arguments
 import common as k
 import config
@@ -285,6 +286,30 @@ class SuperMon:
         result = self.actors[server_id].ask(message)
         return result
 
+    def restart_process(self, command, request):
+        """Restart a process by stopping and starting it"""
+        try:
+            server_id = int(request.get('server_id', None))
+        except Exception as err:
+            return self.ui_error(err)
+        try:
+            process_id = int(request.get('process_id', None))
+        except Exception as err:
+            return self.ui_error(err)
+        # Stop
+        message = {
+            'command': k.CMD_STOP_PROC,
+            'process_id': process_id
+        }
+        result = self.actors[server_id].ask(message)
+        # Start
+        message = {
+            'command': k.CMD_START_PROC,
+            'process_id': process_id
+        }
+        result = self.actors[server_id].ask(message)
+        return result
+
     def server_command(self, command, request):
         """Execute a server command (start, stop, restart)"""
         try:
@@ -368,6 +393,8 @@ class SuperMon:
             result = self.server_command(command, request)
         elif command in [k.CMD_START_PROC, k.CMD_STOP_PROC, k.CMD_TOGGLE_PROC]:
             result = self.process_command(command, request)
+        elif command == k.CMD_RESTART_PROC:
+            result = self.restart_process(command, request)
         else:
             result = self.ui_error('Invalid command received: {}'.format(command))
         logging.debug('API Service, response: %s', repr(result))
@@ -388,6 +415,9 @@ class SuperMon:
         for actor in self.actors:
             actor.tell(message)
         # self.web_server.stop()
+        time.sleep(2)
+        pykka.ActorRegistry.stop_all()
+        logging.debug('Exiting application')
 
 
 def main():

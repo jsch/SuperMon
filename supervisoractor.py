@@ -19,7 +19,7 @@ class SupervisorActor(pykka.ThreadingActor):
 
     def __init__(self, config):
         """Inicia el actor"""
-        super(SupervisorActor, self).__init__()
+        super().__init__()
         self.server_id = config.get('server_id', -1)
         self.server_name = config.get('server_name')
         self.event_queue = config.get('event_queue', None)
@@ -74,7 +74,6 @@ class SupervisorActor(pykka.ThreadingActor):
             }
             self.event_queue.put_nowait(event)
         logging.debug('Publishing event: %s', repr(data))
-        return
 
     def make_change(self, process_name, process_id, key, fr, to):
         """Make a change dict"""
