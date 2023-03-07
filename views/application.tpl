@@ -50,6 +50,14 @@
     <!-- Banner end -->
 
     <div class="bs-doc-section" style="margin-top:4em !important">
+      % ix = 0
+      % if len(data.get('servers', [])) < 1:
+      <div class="row">
+      <div class="alert alert-warning">
+        No supervisors found.
+        </div>
+      </div>
+      % else:
         <%
          state_info = {
            'RUNNING': {'alert': 'success', 'btn': 'dark', 'glyph': 'stop'},
@@ -161,6 +169,7 @@
       % if ix % 2 == 0:
       </div>
       % end
+      % end   # if there are no servers
 
     </div>
     <!--  data end -->
