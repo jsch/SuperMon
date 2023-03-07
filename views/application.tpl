@@ -26,7 +26,17 @@
     </div>
   </div>
   <div class="container">
+    % ix = 0
+    % if len(data.get('servers', [])) < 1:
     <div class="row">
+      <div class="col-lg-12">
+        <div class="alert alert-warning">
+          No supervisors found.
+        </div>
+      </div>
+    </div>
+    % else:
+  <div class="row">
       <div class="col-lg-12">
         <div>
           <form>
@@ -50,14 +60,6 @@
     <!-- Banner end -->
 
     <div class="bs-doc-section" style="margin-top:4em !important">
-      % ix = 0
-      % if len(data.get('servers', [])) < 1:
-      <div class="row">
-      <div class="alert alert-warning">
-        No supervisors found.
-        </div>
-      </div>
-      % else:
         <%
          state_info = {
            'RUNNING': {'alert': 'success', 'btn': 'dark', 'glyph': 'stop'},
