@@ -59,7 +59,7 @@ SUPERVISORS = [
 
 ## Running the application
 
-Once the application is configured it cam be started with:
+Once the application is configured it can be started with:
 
 ```
 python supermon.py
